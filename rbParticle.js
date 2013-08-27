@@ -6,6 +6,12 @@ var stop = 0
 
 var canvas = document.querySelector('canvas');
 var ctx = canvas.getContext('2d');
+var stats = new Stats();
+stats.setMode( 0 );
+stats.domElement.style.position = 'absolute';
+stats.domElement.style.left = '420px';
+stats.domElement.style.top = '8px';
+document.body.appendChild( stats.domElement );
 
 canvas.width = 400;
 canvas.height = 400;
@@ -109,17 +115,18 @@ function clear() {
 }
 
 function draw() {
+	stats.begin();
 	for(var i = 0; i < particles.length; i++) {
 		particles[i].update(0.1);
 		var part = particles[i];
 		var position = particles[i].position;
 		if(particles[i].life <= 0) continue;
-		
-		ctx.fillStyle = 'rgba('+ part.r + ',' + part.g + ',' + part.b +','+ part.alpha +')';
-		ctx.beginPath();
-		ctx.arc(position.x, position.y, part.size, 0, Math.PI*2, true);
-		ctx.fill();
+			ctx.fillStyle = 'rgba('+ part.r + ',' + part.g + ',' + part.b +','+ part.alpha +')';
+			ctx.beginPath();
+			ctx.arc(position.x, position.y, part.size, 0, Math.PI*2, true);
+			ctx.fill();		
 	}
+	stats.end();
 }
 
 function debug (param) {
