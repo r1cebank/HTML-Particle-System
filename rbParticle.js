@@ -6,8 +6,10 @@
  */
  
  /* Test */
+ 
+ var debug = 0;
  var cfg = {
-	 totalParticles: 200,
+	 totalParticles: 100000,
 	 updateDelta: 0.1,
 	 x: 200,
 	 y: 200,
@@ -80,7 +82,7 @@ Particle.prototype.update = function(dt) {
 ///End particle Code
 
 function Emitter(config) {
-	
+
 	this.logCallsign = "Emitter: ";
 	console.log(this.logCallsign + "emitter started with config: " + JSON.stringify(config));
 	//Apply configs
@@ -102,14 +104,11 @@ function Emitter(config) {
 	console.log(this.logCallsign + "particle pool created with " + this.totalParticles + " particles");
 }
 
-Emitter.prototype.shouldEmitSomeParticles = function () {
-	//console.log(this.logCallsign + "currently with " + this.particleCount + " particles");
-	return (this.particleCount < this.totalParticles);
-};
-
 Emitter.prototype.update = function (delta) {
-	console.log(this.logCallsign + "updating with delta " + delta);
-	while(this.shouldEmitSomeParticles()) {
+	if(debug) {
+		console.log(this.logCallsign + "updating with delta " + delta);
+	}
+	while(this.particleCount < this.totalParticles) {
 		this.addParticle(); //Particle Count Updates Here
 	}
 	
@@ -122,42 +121,45 @@ Emitter.prototype.update = function (delta) {
 	}
 };
 
-Emitter.prototype.getParticleFromPool = function () {
-	return this.particlePool[this.particleCount];
-};
-
 Emitter.prototype.addParticle = function () {
-	var particle = this.getParticleFromPool();
-	this.particleCount++;
 	///Set particle properties based on config
+	this.particlePool[this.particleCount] = null;
+	delete this.particlePool[this.particleCount];
+	this.particlePool[this.particleCount] = new Particle(2, 1, 10, 10, 1, 2, 12);
+	this.particleCount++;
 };
 
 Emitter.prototype.returnParticleToPool = function (index) {
 	var deadParticle = this.particlePool[index];
 	this.particlePool[index] = this.particlePool[this.particleCount - 1];
 	this.particlePool[this.particleCount - 1] = deadParticle;
+	this.particleCount--;
 };
 
 Emitter.prototype.updateParticle = function (delta, particle, particleIndex) {
-	console.log(this.logCallsign + "updating particle: " + particleIndex);
-	console.log(this.logCallsign + JSON.stringify(particle));
-	particle.life -= delta;
 		
 	if(particle.life > 0) {
-	
+		if(debug) {
+			console.log(this.logCallsign + "updating particle: " + particleIndex);
+			console.log(this.logCallsign + JSON.stringify(particle));
+		}
+		particle.life -= delta;
 		var ageRatio = particle.life / particle.originalLife;
 		particle.size = particle.originalSize * ageRatio;
 		particle.alpha = ageRatio;
-		particle.position.x += particle.velocity.x * dt;
-		particle.position.y += particle.velocity.y * dt;
+		particle.position.x += particle.velocity.x * delta;
+		particle.position.y += particle.velocity.y * delta;
 		
 		//Move Particle Here and change particle properties here.
-		
-		console.log(this.logCallsign + "particle alive: " + particleIndex);
-		console.log(this.logCallsign + JSON.stringify(particle));
+		if(debug) {
+			console.log(this.logCallsign + "particle alive: " + particleIndex);
+			console.log(this.logCallsign + JSON.stringify(particle));
+		}
 	} else {
-		console.log(this.logCallsign + "particle dead: " + particleIndex);
-		console.log(this.logCallsign + JSON.stringify(particle));
+		if(debug) {
+			console.log(this.logCallsign + "particle dead: " + particleIndex);
+			console.log(this.logCallsign + JSON.stringify(particle));
+		}
 		this.returnParticleToPool(particleIndex);
 	}
 };

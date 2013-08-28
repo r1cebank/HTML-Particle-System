@@ -17,7 +17,8 @@
 	<script>
 		var particleEngine = new rbParticle('particleCanvas');
 		var emitter = new Emitter(cfg);
-		emitter.update(0.1);
+		for(var i = 0; i < 3600; i++)
+			emitter.update(0.1);
 	</script>
 	<button onclick="addParticle();">Add Particle</button>
 	<button onclick="debug('stop');">Stop Particle</button>
