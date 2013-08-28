@@ -11,10 +11,16 @@
 		</style>
 	</head>
 	<body>
-		<canvas>Your Browser does not support the canvas element</canvas>
+		<canvas id="particleCanvas">Your Browser does not support the canvas element</canvas>
 	<script type="text/javascript" src="stats.min.js"></script>
 	<script type="text/javascript" src="rbParticle.js"></script>
+	<script>
+		var particleEngine = new rbParticle('particleCanvas');
+		var emitter = new Emitter(cfg);
+		emitter.update(0.1);
+	</script>
 	<button onclick="addParticle();">Add Particle</button>
 	<button onclick="debug('stop');">Stop Particle</button>
+	<h4>rbParticle Test</h4>
 	</body>
 </html>

@@ -107,6 +107,7 @@ Emitter.prototype.update = function (delta) {
 	while(particleIndex < this.particleCount) {
 		var particle = this.particlePool[particleIndex];
 		this.updateParticle(delta, particle, particleIndex);
+		particleIndex++;
 	}
 };
 
