@@ -3,6 +3,7 @@
 ## Overview
 
 **rbParticles**, is a simple particle system based on HTML5.
+****
 
 ### Files
 
@@ -13,6 +14,7 @@
 **rbParticle.js.old**     *Old useless file*
 
 **Other supporting files**
+****
 
 ### Current Development
 
@@ -24,6 +26,9 @@ Simple particle system that supports:
 
 **opacity**
 
-**random color particles**
+**birth and death color**
 
-With ***NO*** Emitters. I am working on emitters right now.
+**faster and better particle management system**
+****
+
+With ***working*** Emitters. I am working on emitters expansion now.
