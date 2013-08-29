@@ -16,12 +16,9 @@
 	<script type="text/javascript" src="rbParticle.js"></script>
 	<script>
 		var particleEngine = new rbParticle('particleCanvas');
-		var emitter = new Emitter(cfg);
 		var start = new Date().getTime();
-		for(var i = 0; i < 3600; i++) {
-			emitter.update();
-			//console.log("Iteration " + i + " complete!");
-		}
+		for(var i = 0; i < 3600; i++)
+			particleEngine.update();
 		var end = new Date().getTime();
 		var time = end - start;
 		console.log("calculation ended in: " + time + "ms");

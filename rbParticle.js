@@ -27,9 +27,9 @@ function rbParticle (cvName) {
 	console.log(this.logCallsign + "engine started for canvas: " + cvName);
 	
 	this.canvas = document.getElementById(cvName);
-	var ctx = this.canvas.getContext('2d');
+	this.ctx = this.canvas.getContext('2d');
 	
-	var emitter = new Emitter(cfg);
+	this.emitter = new Emitter(cfg);
 	
 	//Stats
 	this.stats = new Stats();
@@ -44,7 +44,7 @@ function rbParticle (cvName) {
 }
 
 rbParticle.prototype.update = function () {
-	
+	this.emitter.update();
 }
 
 rbParticle.prototype.draw = function () {
