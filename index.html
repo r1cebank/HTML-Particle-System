@@ -17,13 +17,16 @@
 	<script>
 		var particleEngine = new rbParticle('particleCanvas');
 		var emitter = new Emitter(cfg);
+		var start = new Date().getTime();
 		for(var i = 0; i < 3600; i++) {
-			emitter.update(0.1);
+			emitter.update();
 			//console.log("Iteration " + i + " complete!");
 		}
+		var end = new Date().getTime();
+		var time = end - start;
+		console.log("calculation ended in: " + time + "ms");
 	</script>
 	<button onclick="addParticle();">Add Particle</button>
 	<button onclick="debug('stop');">Stop Particle</button>
-	<h4>rbParticle Test</h4>
 	</body>
 </html>

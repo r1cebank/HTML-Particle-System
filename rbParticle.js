@@ -7,9 +7,9 @@
  
  /* Test */
  
- var debug = 1;
+ var debug = 0;
  var cfg = {
-	 totalParticles: 100,
+	 totalParticles: 1000000,
 	 updateDelta: 0.1,
 	 x: 200,
 	 y: 200,
@@ -29,6 +29,8 @@ function rbParticle (cvName) {
 	this.canvas = document.getElementById(cvName);
 	var ctx = this.canvas.getContext('2d');
 	
+	var emitter = new Emitter(cfg);
+	
 	//Stats
 	this.stats = new Stats();
 	this.stats.setMode(0);
@@ -39,6 +41,14 @@ function rbParticle (cvName) {
 	console.log(this.logCallsign + "stat module loaded.");
 	this.canvas.width = 400;
 	this.canvas.height = 400;
+}
+
+rbParticle.prototype.update = function () {
+	
+}
+
+rbParticle.prototype.draw = function () {
+	
 }
 
 //Particles
@@ -134,7 +144,7 @@ Emitter.prototype.shouldEmitSomeParticles = function () {
 	return (this.particleCount < this.totalParticles);
 }
 
-Emitter.prototype.update = function (delta) {
+Emitter.prototype.update = function () {
 	if(debug) {
 		console.log(this.logCallsign + "updating with delta " + delta);
 	}
@@ -146,7 +156,7 @@ Emitter.prototype.update = function (delta) {
 	while(particleIndex < this.particleCount) {
 		//console.log(this.logCallsign + "updating particle " + particleIndex + " in the pool");
 		var particle = this.particlePool[particleIndex];
-		this.updateParticle(delta, particle, particleIndex);
+		this.updateParticle(particle, particleIndex);
 		particleIndex++;
 	}
 	if(debug)
@@ -164,7 +174,7 @@ Emitter.prototype.addParticle = function () {
 	}
 };
 
-Emitter.prototype.returnParticleToPool = function (delta, index) {
+Emitter.prototype.returnParticleToPool = function (index) {
 	if(debug) {
 		console.log(this.logCallsign + "particle " + index + " dead.");
 		console.log(this.logCallsign + "replace it with: " + (this.particleCount - 1));
@@ -174,22 +184,22 @@ Emitter.prototype.returnParticleToPool = function (delta, index) {
 	this.particlePool[this.particleCount - 1] = deadParticle;
 	this.particleCount--;
 	//Update the swapped one
-	this.updateParticle(delta, this.particlePool[index], index);
+	this.updateParticle(this.particlePool[index], index);
 };
 
-Emitter.prototype.updateParticle = function (delta, particle, particleIndex) {
+Emitter.prototype.updateParticle = function (particle, particleIndex) {
 		
 	if(particle.life > 0) {
 		if(debug) {
 			console.log(this.logCallsign + "updating particle: " + particleIndex);
 			console.log(this.logCallsign + JSON.stringify(particle));
 		}
-		particle.life -= delta;
+		particle.life -= this.delta;
 		var ageRatio = particle.life / particle.originalLife;
 		particle.size = particle.originalSize * ageRatio;
 		particle.alpha = ageRatio;
-		particle.position.x += particle.velocity.x * delta;
-		particle.position.y += particle.velocity.y * delta;
+		particle.position.x += particle.velocity.x * this.delta;
+		particle.position.y += particle.velocity.y * this.delta;
 		
 		//Move Particle Here and change particle properties here.
 		if(debug) {
@@ -201,6 +211,6 @@ Emitter.prototype.updateParticle = function (delta, particle, particleIndex) {
 			console.log(this.logCallsign + "particle dead: " + particleIndex);
 			console.log(this.logCallsign + JSON.stringify(particle));
 		}
-		this.returnParticleToPool(delta, particleIndex);
+		this.returnParticleToPool(particleIndex);
 	}
 };
