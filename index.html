@@ -16,12 +16,16 @@
 	<script type="text/javascript" src="rbParticle.js"></script>
 	<script>
 		var particleEngine = new rbParticle('particleCanvas');
-		var start = new Date().getTime();
-		for(var i = 0; i < 3600; i++)
+		function loop () {
+			particleEngine.clear();
 			particleEngine.update();
-		var end = new Date().getTime();
-		var time = end - start;
-		console.log("calculation ended in: " + time + "ms");
+			particleEngine.draw();
+			queue();
+		}
+		function queue () {
+			window.requestAnimationFrame(loop);
+		}
+		loop();
 	</script>
 	<button onclick="addParticle();">Add Particle</button>
 	<button onclick="debug('stop');">Stop Particle</button>

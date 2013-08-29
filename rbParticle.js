@@ -7,15 +7,20 @@
  
  /* Test */
  
- var debug = 0;
- var cfg = {
-	 totalParticles: 1000000,
-	 updateDelta: 0.1,
-	 x: 200,
-	 y: 200,
-	 configStr: "config:test"
-	 
- };
+var debug = 0;
+var cfg = {
+	totalParticles: 100000,
+	updateDelta: 0.01,
+	x: 200,
+	y: 200,
+	configStr: "config:test"
+};
+ 
+var startColor = {
+	r: 73,
+	g: 196,
+	b: 190
+};
 
  /* End Test */
  
@@ -31,6 +36,7 @@ function rbParticle (cvName) {
 	
 	this.emitter = new Emitter(cfg);
 	
+	
 	//Stats
 	this.stats = new Stats();
 	this.stats.setMode(0);
@@ -39,17 +45,52 @@ function rbParticle (cvName) {
 	this.stats.domElement.style.top = '8px';
 	document.body.appendChild( this.stats.domElement );
 	console.log(this.logCallsign + "stat module loaded.");
+	
+	this.renderer = new Renderer (this.stats, this.ctx, this.emitter);
+	console.log(this.logCallsign + "renderer loaded.");
+	
 	this.canvas.width = 400;
 	this.canvas.height = 400;
 }
 
+rbParticle.prototype.clear = function () {
+	this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+}
+
 rbParticle.prototype.update = function () {
-	this.emitter.update();
+	//Call renderer to update
+	this.renderer.update();
 }
 
 rbParticle.prototype.draw = function () {
-	
+	//Call renderer to draw
+	this.renderer.draw();
 }
+
+////////////////Start Renderer//////////////
+function Renderer (stats, context, emitter) {
+	this.stats = stats;
+	this.ctx = context;
+	this.emitter = emitter;
+}
+
+Renderer.prototype.update = function () {
+	this.emitter.update();
+}
+
+Renderer.prototype.draw = function () {
+	this.stats.begin();
+	for(var i = 0; i < this.emitter.particleCount; i++) {
+		var part = this.emitter.particlePool[i];
+		var position = this.emitter.particlePool[i].position;
+		this.ctx.fillStyle = 'rgba('+ part.r + ',' + part.g + ',' + part.b +','+ part.alpha +')';
+		this.ctx.beginPath();
+		this.ctx.arc(position.x, position.y, part.size, 0, Math.PI*2, true);
+		this.ctx.fill();		
+	}
+	this.stats.end();
+}
+
 
 //Particles
 function Particle(x, y, life, angle, speed, size, color) {
@@ -146,7 +187,7 @@ Emitter.prototype.shouldEmitSomeParticles = function () {
 
 Emitter.prototype.update = function () {
 	if(debug) {
-		console.log(this.logCallsign + "updating with delta " + delta);
+		console.log(this.logCallsign + "updating with delta " + this.delta);
 	}
 	if(this.shouldEmitSomeParticles()) {
 		this.addParticle(); //Particle Count Updates Here
@@ -166,7 +207,9 @@ Emitter.prototype.update = function () {
 Emitter.prototype.addParticle = function () {
 	///Set particle properties based on config
 	
-	this.particlePool[this.particleCount].set(2, 1, 10, 10, 1, 2, 12);
+	this.particlePool[this.particleCount].set(this.position.x, this.position.y, 10, Math.random() * 360 - 1, Math.random() * (20-8) + 8, 6, startColor);
+	
+	
 	this.particleCount++;
 	if(debug) {
 		console.log(this.logCallsign + "particle emitted.");
@@ -175,6 +218,10 @@ Emitter.prototype.addParticle = function () {
 };
 
 Emitter.prototype.returnParticleToPool = function (index) {
+	if(this.particleCount == 1) {
+		this.particleCount--;
+		return;
+	}
 	if(debug) {
 		console.log(this.logCallsign + "particle " + index + " dead.");
 		console.log(this.logCallsign + "replace it with: " + (this.particleCount - 1));
@@ -188,13 +235,14 @@ Emitter.prototype.returnParticleToPool = function (index) {
 };
 
 Emitter.prototype.updateParticle = function (particle, particleIndex) {
-		
+	
+	particle.life -= this.delta;
+			
 	if(particle.life > 0) {
 		if(debug) {
 			console.log(this.logCallsign + "updating particle: " + particleIndex);
 			console.log(this.logCallsign + JSON.stringify(particle));
 		}
-		particle.life -= this.delta;
 		var ageRatio = particle.life / particle.originalLife;
 		particle.size = particle.originalSize * ageRatio;
 		particle.alpha = ageRatio;
