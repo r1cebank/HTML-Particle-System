@@ -9,9 +9,9 @@
  
 var debug = 0;
 var cfg = {
-	totalParticles: 1000,
-	updateDelta: 0.05,
-	particleLife: 50,
+	totalParticles: 2000,
+	updateDelta: 0.1,
+	particleLife: 30,
 	particleSize: 10,
 	maxX: 400,
 	maxY: 400,
@@ -31,6 +31,7 @@ var cfg = {
 	},
 	startColorVar: 20,
 	endColorVar: 20,
+	sizeVal: 10,
 	configStr: "config:test"
 };
 
@@ -217,6 +218,7 @@ function Emitter(config) {
 		x: config.x,
 		y: config.y
 	};
+	this.sizeVal = config.sizeVal;
 	
 	this.startColor = config.startColor;
 	this.endColor = config.endColor;
@@ -251,7 +253,7 @@ function Emitter(config) {
 
 Emitter.prototype.shouldEmitSomeParticles = function () {
 	if (this.particleCount < this.totalParticles) {
-		if(Math.random() > 0.9)
+		if(Math.random() > 0.5)
 			return true;
 		else
 			return false;
@@ -288,7 +290,7 @@ Emitter.prototype.addParticle = function () {
 		b: limit255(this.startColor.b + Math.round(this.startColorVar * random11()))
 	};
 	
-	this.particlePool[this.particleCount].set(Math.round(Math.random() * 400), 0, this.particleLife, -90, Math.random() * 20, this.particleSize, startColor);
+	this.particlePool[this.particleCount].set(200, 200, this.particleLife, Math.random() * 360, 10, this.particleSize + this.sizeVal * random11(), startColor);
 	
 	
 	this.particleCount++;
