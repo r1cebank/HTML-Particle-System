@@ -9,20 +9,67 @@
  
 var debug = 0;
 var cfg = {
-	totalParticles: 100000,
-	updateDelta: 0.01,
+	totalParticles: 1000,
+	updateDelta: 0.05,
+	particleLife: 50,
+	particleSize: 10,
+	maxX: 400,
+	maxY: 400,
+	minX: 0,
+	minY: 0,
 	x: 200,
 	y: 200,
+	startColor: {
+		r: 73,
+		g: 196,
+		b: 190
+	},
+	endColor: {
+		r: 232,
+		g: 214,
+		b: 42
+	},
+	startColorVar: 20,
+	endColorVar: 20,
 	configStr: "config:test"
-};
- 
-var startColor = {
-	r: 73,
-	g: 196,
-	b: 190
 };
 
  /* End Test */
+ 
+ ///////////////Utils////////////
+ 
+function isInteger (num) {
+	 return num === (num | 0);
+}
+ 
+function isNumber (i) {
+	return typeof i === 'number';
+}
+
+function random11 () {
+			return this.random(-1, 1, true);
+}
+
+function limit255(number) {
+	return (number > 255) ? 255 : number;
+}
+
+function random(minOrMax, maxOrUndefined, dontFloor) {
+	dontFloor = dontFloor || false;
+	
+	var min = this.isNumber(maxOrUndefined) ? minOrMax: 0;
+	var max = this.isNumber(maxOrUndefined) ? maxOrUndefined: minOrMax;
+	
+	var range = max - min;
+	
+	var result = Math.random() * range + min;
+	
+	if (this.isInteger(min) && this.isInteger(max) && ! dontFloor) {
+		return Math.floor(result);
+	} else {
+			return result;
+		}
+	}
  
 //Particle System
 
@@ -83,7 +130,7 @@ Renderer.prototype.draw = function () {
 	for(var i = 0; i < this.emitter.particleCount; i++) {
 		var part = this.emitter.particlePool[i];
 		var position = this.emitter.particlePool[i].position;
-		this.ctx.fillStyle = 'rgba('+ part.r + ',' + part.g + ',' + part.b +','+ part.alpha +')';
+		this.ctx.fillStyle = 'rgba('+ Math.round(part.r) + ',' + Math.round(part.g) + ',' + Math.round(part.b) +','+ part.alpha +')';
 		this.ctx.beginPath();
 		this.ctx.arc(position.x, position.y, part.size, 0, Math.PI*2, true);
 		this.ctx.fill();		
@@ -164,11 +211,32 @@ function Emitter(config) {
 	console.log(this.logCallsign + "emitter started with config: " + JSON.stringify(config));
 	//Apply configs
 	this.totalParticles = config.totalParticles;
+	this.particleLife = config.particleLife;
 	this.delta = config.updateDelta;
 	this.position = {
 		x: config.x,
 		y: config.y
 	};
+	
+	this.startColor = config.startColor;
+	this.endColor = config.endColor;
+	this.startColorVar = config.startColorVar;
+	this.endColorVar = config.endColorVar;
+	
+	this.particleSize = config.particleSize;
+	
+	//Screen bound
+	this.maxX = config.maxX;
+	this.maxY = config.maxY;
+	this.minX = config.minX;
+	this.minY = config.minY;
+	
+	this.deltaColor = {
+		r: (this.endColor.r - this.startColor.r) / (this.particleLife / this.delta),
+		g: (this.endColor.g - this.startColor.g) / (this.particleLife / this.delta),
+		b: (this.endColor.b - this.startColor.b) / (this.particleLife / this.delta)
+	};
+	
 	this.configStr = config.configStr;
 	
 	this.particlePool = [];
@@ -182,7 +250,14 @@ function Emitter(config) {
 }
 
 Emitter.prototype.shouldEmitSomeParticles = function () {
-	return (this.particleCount < this.totalParticles);
+	if (this.particleCount < this.totalParticles) {
+		if(Math.random() > 0.9)
+			return true;
+		else
+			return false;
+	} else {
+		return false;
+	}
 }
 
 Emitter.prototype.update = function () {
@@ -207,7 +282,13 @@ Emitter.prototype.update = function () {
 Emitter.prototype.addParticle = function () {
 	///Set particle properties based on config
 	
-	this.particlePool[this.particleCount].set(this.position.x, this.position.y, 10, Math.random() * 360 - 1, Math.random() * (20-8) + 8, 6, startColor);
+	var startColor = {
+		r: limit255(this.startColor.r + Math.round(this.startColorVar * random11())),
+		g: limit255(this.startColor.g + Math.round(this.startColorVar * random11())),
+		b: limit255(this.startColor.b + Math.round(this.startColorVar * random11()))
+	};
+	
+	this.particlePool[this.particleCount].set(Math.round(Math.random() * 400), 0, this.particleLife, -90, Math.random() * 20, this.particleSize, startColor);
 	
 	
 	this.particleCount++;
@@ -248,6 +329,16 @@ Emitter.prototype.updateParticle = function (particle, particleIndex) {
 		particle.alpha = ageRatio;
 		particle.position.x += particle.velocity.x * this.delta;
 		particle.position.y += particle.velocity.y * this.delta;
+		particle.r += this.deltaColor.r;
+		particle.g += this.deltaColor.g;
+		particle.b += this.deltaColor.b;
+		
+		if((particle.position.x < this.minX) || (particle.position.x > this.maxX) ||
+			(particle.position.y < this.minY) || (particle.position.y > this.maxY)) {
+				//Discard out of bounds particles
+				this.returnParticleToPool(particleIndex);
+				return;
+			}
 		
 		//Move Particle Here and change particle properties here.
 		if(debug) {
