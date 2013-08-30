@@ -11,7 +11,7 @@ var debug = 0;
 var cfg = {
 	totalParticles: 2000,
 	updateDelta: 0.1,
-	particleLife: 30,
+	particleLife: 40,
 	particleSize: 10,
 	maxX: 400,
 	maxY: 400,
@@ -31,6 +31,8 @@ var cfg = {
 	},
 	startColorVar: 20,
 	endColorVar: 20,
+	velocity: 10,
+	velocityVar: 6,
 	sizeVal: 10,
 	configStr: "config:test"
 };
@@ -227,6 +229,9 @@ function Emitter(config) {
 	
 	this.particleSize = config.particleSize;
 	
+	this.velocity = config.velocity;
+	this.velocityVar = config.velocityVar;
+	
 	//Screen bound
 	this.maxX = config.maxX;
 	this.maxY = config.maxY;
@@ -289,8 +294,9 @@ Emitter.prototype.addParticle = function () {
 		g: limit255(this.startColor.g + Math.round(this.startColorVar * random11())),
 		b: limit255(this.startColor.b + Math.round(this.startColorVar * random11()))
 	};
+
 	
-	this.particlePool[this.particleCount].set(200, 200, this.particleLife, Math.random() * 360, 10, this.particleSize + this.sizeVal * random11(), startColor);
+	this.particlePool[this.particleCount].set(200, 200, this.particleLife, Math.random() * 360, (this.velocity + this.velocityVar * random11()), this.particleSize + this.sizeVal * random11(), startColor);
 	
 	
 	this.particleCount++;
