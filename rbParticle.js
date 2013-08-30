@@ -10,9 +10,10 @@
 var debug = 0;
 var cfg = {
 	totalParticles: 100,
-	updateDelta: 0.5,
-	particleLife: 5,
+	updateDelta: 0.05,
+	particleLife: 10,
 	particleSize: 10,
+	endSize: 10,
 	maxX: 400,
 	maxY: 400,
 	minX: 0,
@@ -31,7 +32,7 @@ var cfg = {
 	},
 	startColorVar: 20,
 	endColorVar: 20,
-	velocity: 0,
+	velocity: 10,
 	velocityVar: 0,
 	sizeVal: 4,
 	configStr: "config:test"
@@ -228,6 +229,7 @@ function Emitter(config) {
 	this.endColorVar = config.endColorVar;
 	
 	this.particleSize = config.particleSize;
+	this.endSize = config.endSize;
 	
 	this.velocity = config.velocity;
 	this.velocityVar = config.velocityVar;
@@ -243,6 +245,7 @@ function Emitter(config) {
 		g: (this.endColor.g - this.startColor.g) / (this.particleLife / this.delta),
 		b: (this.endColor.b - this.startColor.b) / (this.particleLife / this.delta)
 	};
+	
 	
 	this.configStr = config.configStr;
 	
@@ -296,7 +299,7 @@ Emitter.prototype.addParticle = function () {
 	};
 
 	
-	this.particlePool[this.particleCount].set(Math.round(Math.random() * 400), Math.round(Math.random() * 400), this.particleLife, Math.random() * 360, (this.velocity + this.velocityVar * random11()), this.particleSize + this.sizeVal * random11(), startColor);
+	this.particlePool[this.particleCount].set(200 , 200, this.particleLife, random(60, 120, false), (this.velocity + this.velocityVar * random11()), this.particleSize + this.sizeVal * random11(), startColor);
 	
 	
 	this.particleCount++;
@@ -333,7 +336,7 @@ Emitter.prototype.updateParticle = function (particle, particleIndex) {
 			console.log(this.logCallsign + JSON.stringify(particle));
 		}
 		var ageRatio = particle.life / particle.originalLife;
-		particle.size = particle.originalSize * ageRatio;
+
 		particle.alpha = ageRatio;
 		particle.position.x += particle.velocity.x * this.delta;
 		particle.position.y += particle.velocity.y * this.delta;
@@ -341,6 +344,11 @@ Emitter.prototype.updateParticle = function (particle, particleIndex) {
 		particle.g += this.deltaColor.g;
 		particle.b += this.deltaColor.b;
 		
+		//New Size calculation
+		var deltaSize = (this.endSize - particle.originalSize) / (particle.originalSize / this.delta);
+		particle.size += deltaSize;	
+		
+			
 		if((particle.position.x < this.minX) || (particle.position.x > this.maxX) ||
 			(particle.position.y < this.minY) || (particle.position.y > this.maxY)) {
 				//Discard out of bounds particles
