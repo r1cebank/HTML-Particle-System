@@ -9,20 +9,18 @@
  
 var debug = 0;
 var cfg = {
-	totalParticles: 100,
+	totalParticles: 500,
 	updateDelta: 0.05,
 	particleLife: 10,
 	emissionRate: 10,
-	particleSize: 10,
-	minAngle: 70,
-	maxAngle: 110,
+	particleSize: 5,
+	minAngle: 50,
+	maxAngle: 130,
 	endSize: 10,
 	maxX: 400,
 	maxY: 400,
 	minX: 0,
 	minY: 0,
-	x: 200,
-	y: 200,
 	startColor: {
 		r: 20,
 		g: 100,
@@ -33,13 +31,17 @@ var cfg = {
 		g: 84,
 		b: 47
 	},
-	startAlpha: 0.3,
-	endAlpha: 0,
+	position: {
+		x: "Math.random() * 400",
+		y: "Math.random() * 400"
+	},
+	startAlpha: 0.8,
+	endAlpha: 0.4,
 	startColorVar: 20,
 	endColorVar: 20,
 	velocity: 20,
 	velocityVar: 0,
-	sizeVal: 0,
+	sizeVal: 2,
 	useTexture: false,
 	texture : "texture.png",
 	configStr: "config:test"
@@ -191,7 +193,7 @@ Renderer.prototype.drawTexture = function () {
 		
 		//source-atop
 		bufferContext.globalCompositeOperation = "source-atop";
-		bufferContext.fillStyle = 'rgba('+ Math.round(part.color.r) + ',' + Math.round(part.color.g) + ',' + Math.round(part.b) +','+ part.color.a +')';
+		bufferContext.fillStyle = 'rgba('+ Math.round(part.color.r) + ',' + Math.round(part.color.g) + ',' + Math.round(part.color.b) + ', 1' + ')';
 		bufferContext.fillRect(0, 0, part.buffer.width, part.buffer.height);
 		
 		//Reset fill style and operation
@@ -262,13 +264,10 @@ function Emitter(config) {
 	this.logCallsign = "Emitter: ";
 	console.log(this.logCallsign + "emitter started with config: " + JSON.stringify(config));
 	//Apply configs
+	this.position = config.position;
 	this.totalParticles = config.totalParticles;
 	this.particleLife = config.particleLife;
 	this.delta = config.updateDelta;
-	this.position = {
-		x: config.x,
-		y: config.y
-	};
 	this.sizeVal = config.sizeVal;
 	
 	this.startColor = config.startColor;
@@ -305,8 +304,14 @@ function Emitter(config) {
 	this.textureImg = new Image(); 
 	this.useTexture = config.useTexture;
 	this.texture = config.texture;
-	if(this.useTexture)
+	if(this.useTexture) {
 		this.textureImg.src = this.texture;
+		if((this.textureImg.width == 0 ) || (this.textureImg.height == 0)) {
+			//this.useTexture = false;
+			this.textureImg.width = 32;
+			this.textureImg.height = 32;
+		}
+	}
 	
 	this.deltaColor = {
 		r: (this.endColor.r - this.startColor.r) / (this.particleLife / this.delta),
@@ -383,7 +388,7 @@ Emitter.prototype.addParticle = function () {
 	};
 
 	
-	this.particlePool[this.particleCount].set(200 , 200, this.particleLife, random(this.minAngle, this.maxAngle, false), (this.velocity + this.velocityVar * random11()), this.particleSize + this.sizeVal * random11(), startColor);
+	this.particlePool[this.particleCount].set(eval(this.position.x) , eval(this.position.y), this.particleLife, random(this.minAngle, this.maxAngle, false), (this.velocity + this.velocityVar * random11()), this.particleSize + this.sizeVal * random11(), startColor);
 	
 	
 	this.particleCount++;
