@@ -9,12 +9,12 @@
  
 var debug = 0;
 var cfg = {
-	totalParticles: 100,
+	totalParticles: 10,
 	updateDelta: 0.05,
 	particleLife: 10,
 	emissionRate: 1,
 	particleSize: 6,
-	endSize: 4,
+	endSize: 6,
 	maxX: 400,
 	maxY: 400,
 	minX: 0,
@@ -32,12 +32,14 @@ var cfg = {
 		b: 89
 	},
 	startAlpha: 1,
-	endAlpha: 1,
+	endAlpha: 0,
 	startColorVar: 20,
 	endColorVar: 20,
 	velocity: 20,
 	velocityVar: 0,
 	sizeVal: 0,
+	useTexture: true,
+	texture : "texture.png",
 	configStr: "config:test"
 };
 
@@ -77,7 +79,23 @@ function random(minOrMax, maxOrUndefined, dontFloor) {
 			return result;
 		}
 	}
- 
+
+var bufferCache = {};
+
+function getBuffer(texture) {
+	var size = '' + texture.width + 'x' + texture.height;
+
+	var canvas = bufferCache[size];
+
+	if(!canvas) {
+		canvas = document.createElement('canvas');
+		canvas.width = texture.width;
+		canvas.height = texture.height;
+		bufferCache[size] = canvas;
+	}
+
+	return canvas;
+}
 //Particle System
 
 function rbParticle (cvName) {
@@ -117,8 +135,11 @@ rbParticle.prototype.update = function () {
 }
 
 rbParticle.prototype.draw = function () {
-	//Call renderer to draw
-	this.renderer.draw();
+	//Call renderer to draw()
+	if(this.emitter.useTexture)
+		this.renderer.drawTexture();
+	else
+		this.renderer.draw();
 }
 
 ////////////////Start Renderer//////////////
@@ -141,6 +162,41 @@ Renderer.prototype.draw = function () {
 		this.ctx.beginPath();
 		this.ctx.arc(position.x, position.y, part.size, 0, Math.PI*2, true);
 		this.ctx.fill();		
+	}
+	this.stats.end();
+}
+
+Renderer.prototype.drawTexture = function () {
+	this.stats.begin();
+
+	for(var i = 0; i < this.emitter.particleCount; i++) {
+		var part = this.emitter.particlePool[i];
+		var position = this.emitter.particlePool[i].position;
+		part.buffer = part.buffer || getBuffer(this.emitter.textureImg);
+
+		var bufferContext = part.buffer.getContext('2d');
+		
+		//Draw particles with texture
+		var w = (this.emitter.textureImg.width * (part.size / part.originalSize)) | 0;
+		var h = (this.emitter.textureImg.height * (part.size / part.originalSize)) | 0;
+		
+		var x = part.position.x - w / 2;
+		var y = part.position.y - h / 2;
+		
+		bufferContext.clearRect(0, 0, part.buffer.width, part.buffer.height);
+		bufferContext.globalAlpha = part.alpha;
+		bufferContext.drawImage(this.emitter.textureImg, 0, 0);
+		
+		//source-atop
+		bufferContext.globalCompositeOperation = "source-atop";
+		bufferContext.fillStyle = 'rgba('+ Math.round(part.r) + ',' + Math.round(part.g) + ',' + Math.round(part.b) +','+ part.alpha +')';
+		bufferContext.fillRect(0, 0, part.buffer.width, part.buffer.height);
+		
+		//Reset fill style and operation
+		bufferContext.globalCompositeOperation = "source-over";
+		bufferContext.globalAlpha = 1;
+		
+		this.ctx.drawImage(part.buffer, 0, 0, part.buffer.width, part.buffer.height, x, y, w, h);		
 	}
 	this.stats.end();
 }
@@ -251,6 +307,13 @@ function Emitter(config) {
 	this.maxY = config.maxY;
 	this.minX = config.minX;
 	this.minY = config.minY;
+	
+	//Texture
+	this.textureImg = new Image(); 
+	this.useTexture = config.useTexture;
+	this.texture = config.texture;
+	if(this.useTexture)
+		this.textureImg.src = this.texture;
 	
 	this.deltaColor = {
 		r: (this.endColor.r - this.startColor.r) / (this.particleLife / this.delta),
