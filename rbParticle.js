@@ -12,6 +12,7 @@ var cfg = {
 	totalParticles: 100,
 	updateDelta: 0.05,
 	particleLife: 10,
+	emissionRate: 1,
 	particleSize: 6,
 	endSize: 4,
 	maxX: 400,
@@ -236,6 +237,10 @@ function Emitter(config) {
 	this.velocity = config.velocity;
 	this.velocityVar = config.velocityVar;
 	
+	//Emission Rate
+	this.emissionRate = config.emissionRate;
+	this.emitCounter = 0;
+	
 	//Alpha
 	this.startAlpha = config.startAlpha;
 	this.endAlpha = config.endAlpha;
@@ -266,6 +271,7 @@ function Emitter(config) {
 	console.log(this.logCallsign + "particle pool created with " + this.totalParticles + " particles");
 }
 
+/*
 Emitter.prototype.shouldEmitSomeParticles = function () {
 	if (this.particleCount < this.totalParticles) {
 		if(Math.random() > 0.5)
@@ -276,13 +282,27 @@ Emitter.prototype.shouldEmitSomeParticles = function () {
 		return false;
 	}
 }
+*/
+
+Emitter.prototype.isFull = function () {
+	return (this.particleCount >= this.totalParticles);
+}
 
 Emitter.prototype.update = function () {
 	if(debug) {
 		console.log(this.logCallsign + "updating with delta " + this.delta);
 	}
-	if(this.shouldEmitSomeParticles()) {
+	/*if(this.shouldEmitSomeParticles()) {
 		this.addParticle(); //Particle Count Updates Here
+	}*/
+	if(this.emissionRate) {
+		var rate = 1.0 / this.emissionRate;
+		this.emitCounter += this.delta;
+		
+		while(!this.isFull() && this.emitCounter > rate) {
+			this.addParticle();
+			this.emitCounter -= rate;
+		}
 	}
 	
 	var particleIndex = 0;
