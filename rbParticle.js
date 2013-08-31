@@ -9,11 +9,11 @@
  
 var debug = 0;
 var cfg = {
-	totalParticles: 1,
+	totalParticles: 100,
 	updateDelta: 0.05,
 	particleLife: 10,
-	particleSize: 4,
-	endSize: 0,
+	particleSize: 6,
+	endSize: 4,
 	maxX: 400,
 	maxY: 400,
 	minX: 0,
@@ -26,10 +26,12 @@ var cfg = {
 		b: 190
 	},
 	endColor: {
-		r: 232,
-		g: 214,
-		b: 42
+		r: 204,
+		g: 91,
+		b: 89
 	},
+	startAlpha: 1,
+	endAlpha: 1,
 	startColorVar: 20,
 	endColorVar: 20,
 	velocity: 20,
@@ -234,6 +236,11 @@ function Emitter(config) {
 	this.velocity = config.velocity;
 	this.velocityVar = config.velocityVar;
 	
+	//Alpha
+	this.startAlpha = config.startAlpha;
+	this.endAlpha = config.endAlpha;
+	this.deltaAlpha = (this.endAlpha - this.startAlpha) / (this.particleLife / this.delta);
+	
 	//Screen bound
 	this.maxX = config.maxX;
 	this.maxY = config.maxY;
@@ -337,12 +344,15 @@ Emitter.prototype.updateParticle = function (particle, particleIndex) {
 		}
 		var ageRatio = particle.life / particle.originalLife;
 
-		particle.alpha = ageRatio;
+		//particle.alpha = ageRatio;
 		particle.position.x += particle.velocity.x * this.delta;
 		particle.position.y += particle.velocity.y * this.delta;
 		particle.r += this.deltaColor.r;
 		particle.g += this.deltaColor.g;
 		particle.b += this.deltaColor.b;
+		
+		//New Alpha calculation
+		particle.alpha += this.deltaAlpha;
 		
 		//New Size calculation
 		var deltaSize = (this.endSize - particle.originalSize) / (particle.originalSize / this.delta);
