@@ -9,12 +9,14 @@
  
 var debug = 0;
 var cfg = {
-	totalParticles: 10,
+	totalParticles: 200,
 	updateDelta: 0.05,
 	particleLife: 10,
-	emissionRate: 1,
-	particleSize: 6,
-	endSize: 6,
+	emissionRate: 20,
+	particleSize: 10,
+	minAngle: 0,
+	maxAngle: 360,
+	endSize: 10,
 	maxX: 400,
 	maxY: 400,
 	minX: 0,
@@ -22,23 +24,23 @@ var cfg = {
 	x: 200,
 	y: 200,
 	startColor: {
-		r: 73,
-		g: 196,
-		b: 190
+		r: 131,
+		g: 134,
+		b: 232
 	},
 	endColor: {
-		r: 204,
-		g: 91,
-		b: 89
+		r: 137,
+		g: 203,
+		b: 255
 	},
-	startAlpha: 1,
+	startAlpha: 0.5,
 	endAlpha: 0,
 	startColorVar: 20,
 	endColorVar: 20,
 	velocity: 20,
 	velocityVar: 0,
 	sizeVal: 0,
-	useTexture: true,
+	useTexture: false,
 	texture : "texture.png",
 	configStr: "config:test"
 };
@@ -158,7 +160,7 @@ Renderer.prototype.draw = function () {
 	for(var i = 0; i < this.emitter.particleCount; i++) {
 		var part = this.emitter.particlePool[i];
 		var position = this.emitter.particlePool[i].position;
-		this.ctx.fillStyle = 'rgba('+ Math.round(part.r) + ',' + Math.round(part.g) + ',' + Math.round(part.b) +','+ part.alpha +')';
+		this.ctx.fillStyle = 'rgba('+ Math.round(part.color.r) + ',' + Math.round(part.color.g) + ',' + Math.round(part.color.b) +','+ part.color.a +')';
 		this.ctx.beginPath();
 		this.ctx.arc(position.x, position.y, part.size, 0, Math.PI*2, true);
 		this.ctx.fill();		
@@ -184,12 +186,12 @@ Renderer.prototype.drawTexture = function () {
 		var y = part.position.y - h / 2;
 		
 		bufferContext.clearRect(0, 0, part.buffer.width, part.buffer.height);
-		bufferContext.globalAlpha = part.alpha;
+		bufferContext.globalAlpha = part.color.a;
 		bufferContext.drawImage(this.emitter.textureImg, 0, 0);
 		
 		//source-atop
 		bufferContext.globalCompositeOperation = "source-atop";
-		bufferContext.fillStyle = 'rgba('+ Math.round(part.r) + ',' + Math.round(part.g) + ',' + Math.round(part.b) +','+ part.alpha +')';
+		bufferContext.fillStyle = 'rgba('+ Math.round(part.color.r) + ',' + Math.round(part.color.g) + ',' + Math.round(part.b) +','+ part.color.a +')';
 		bufferContext.fillRect(0, 0, part.buffer.width, part.buffer.height);
 		
 		//Reset fill style and operation
@@ -217,15 +219,13 @@ function Particle(x, y, life, angle, speed, size, color) {
 	this.originalLife = this.life = life;
 	this.color = color;
 	this.originalSize = this.size = size;
-	this.alpha = 1;
-	if(typeof(color)==='undefined') {
-		this.r = 100;
-		this.g = 100;
-		this.b = 100;
-	} else {
-		this.r = color.r;
-		this.g = color.g;
-		this.b = color.b;	
+	if(typeof(color)==='undefined') {	
+		this.color = {
+			r: 100,
+			g: 100,
+			b: 100,
+			a: 1
+		}
 	}
 }
 
@@ -243,29 +243,18 @@ Particle.prototype.set = function (x, y, life, angle, speed, size, color) {
 	this.originalLife = this.life = life;
 	this.color = color;
 	this.originalSize = this.size = size;
-	this.alpha = 1;
 	if(typeof(color)==='undefined') {
-		this.r = 100;
-		this.g = 100;
-		this.b = 100;
-	} else {
-		this.r = color.r;
-		this.g = color.g;
-		this.b = color.b;	
+		if(typeof(color)==='undefined') {	
+			this.color = {
+				r: 100,
+				g: 100,
+				b: 100,
+				a: 1
+			}
+		}
 	}
 }
 
-Particle.prototype.update = function(dt) {
-	this.life -= dt;
-	
-	if(this.life > 0) {
-		var ageRatio = this.life / this.originalLife;
-		this.size = this.originalSize * ageRatio;
-		this.alpha = ageRatio;
-		this.position.x += this.velocity.x * dt;
-		this.position.y += this.velocity.y * dt;
-		}
-};
 ///End particle Code
 
 function Emitter(config) {
@@ -307,6 +296,10 @@ function Emitter(config) {
 	this.maxY = config.maxY;
 	this.minX = config.minX;
 	this.minY = config.minY;
+	
+	//Angle
+	this.minAngle = config.minAngle;
+	this.maxAngle = config.maxAngle;
 	
 	//Texture
 	this.textureImg = new Image(); 
@@ -385,11 +378,12 @@ Emitter.prototype.addParticle = function () {
 	var startColor = {
 		r: limit255(this.startColor.r + Math.round(this.startColorVar * random11())),
 		g: limit255(this.startColor.g + Math.round(this.startColorVar * random11())),
-		b: limit255(this.startColor.b + Math.round(this.startColorVar * random11()))
+		b: limit255(this.startColor.b + Math.round(this.startColorVar * random11())),
+		a: this.startAlpha
 	};
 
 	
-	this.particlePool[this.particleCount].set(200 , 200, this.particleLife, random(70, 110, false), (this.velocity + this.velocityVar * random11()), this.particleSize + this.sizeVal * random11(), startColor);
+	this.particlePool[this.particleCount].set(200 , 200, this.particleLife, random(this.minAngle, this.maxAngle, false), (this.velocity + this.velocityVar * random11()), this.particleSize + this.sizeVal * random11(), startColor);
 	
 	
 	this.particleCount++;
@@ -435,7 +429,7 @@ Emitter.prototype.updateParticle = function (particle, particleIndex) {
 		particle.b += this.deltaColor.b;
 		
 		//New Alpha calculation
-		particle.alpha += this.deltaAlpha;
+		particle.color.a += this.deltaAlpha;
 		
 		//New Size calculation
 		var deltaSize = (this.endSize - particle.originalSize) / (particle.originalSize / this.delta);
