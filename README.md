@@ -28,7 +28,13 @@ Simple particle system that supports:
 
 **birth and death color**
 
+**color, size and velocity variations**
+
+**emission rates**
+
+**textured particles**
+
 **faster and better particle management system**
 ****
 
-With ***working*** Emitters. I am working on emitters expansion now.
+With ***working*** Emitter and Renderer. emitter expansion is almost finished. Planning on physics engine currently.
