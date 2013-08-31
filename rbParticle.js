@@ -9,14 +9,14 @@
  
 var debug = 0;
 var cfg = {
-	totalParticles: 500,
+	totalParticles: 200,
 	updateDelta: 0.05,
-	particleLife: 10,
-	emissionRate: 10,
-	particleSize: 5,
+	particleLife: 20,
+	emissionRate: 200,
+	particleSize: 4,
 	minAngle: 50,
 	maxAngle: 130,
-	endSize: 10,
+	endSize: 0,
 	maxX: 400,
 	maxY: 400,
 	minX: 0,
@@ -32,8 +32,8 @@ var cfg = {
 		b: 47
 	},
 	position: {
-		x: "Math.random() * 400",
-		y: "Math.random() * 400"
+		x: 200,
+		y: 200
 	},
 	startAlpha: 0.8,
 	endAlpha: 0.4,
@@ -50,6 +50,15 @@ var cfg = {
  /* End Test */
  
  ///////////////Utils////////////
+ 
+function sleep(milliseconds) {
+	var start = new Date().getTime();
+		for (var i = 0; i < 1e7; i++) {
+		if ((new Date().getTime() - start) > milliseconds){
+			break;
+		}
+	}
+}
  
 function isInteger (num) {
 	 return num === (num | 0);
@@ -305,12 +314,15 @@ function Emitter(config) {
 	this.useTexture = config.useTexture;
 	this.texture = config.texture;
 	if(this.useTexture) {
+		console.log(this.logCallsign + "loading texture.");
 		this.textureImg.src = this.texture;
 		if((this.textureImg.width == 0 ) || (this.textureImg.height == 0)) {
 			//this.useTexture = false;
 			this.textureImg.width = 32;
 			this.textureImg.height = 32;
 		}
+		console.log(this.logCallsign + "texture loaded");
+		console.log(this.logCallsign + "texture width: " + this.textureImg.width + " texture height: " + this.textureImg.height);
 	}
 	
 	this.deltaColor = {
