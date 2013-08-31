@@ -9,13 +9,13 @@
  
 var debug = 0;
 var cfg = {
-	totalParticles: 200,
+	totalParticles: 100,
 	updateDelta: 0.05,
 	particleLife: 10,
-	emissionRate: 20,
+	emissionRate: 10,
 	particleSize: 10,
-	minAngle: 0,
-	maxAngle: 360,
+	minAngle: 70,
+	maxAngle: 110,
 	endSize: 10,
 	maxX: 400,
 	maxY: 400,
@@ -24,16 +24,16 @@ var cfg = {
 	x: 200,
 	y: 200,
 	startColor: {
-		r: 131,
-		g: 134,
-		b: 232
+		r: 20,
+		g: 100,
+		b: 200
 	},
 	endColor: {
-		r: 137,
-		g: 203,
-		b: 255
+		r: 255,
+		g: 84,
+		b: 47
 	},
-	startAlpha: 0.5,
+	startAlpha: 0.3,
 	endAlpha: 0,
 	startColorVar: 20,
 	endColorVar: 20,
@@ -424,9 +424,9 @@ Emitter.prototype.updateParticle = function (particle, particleIndex) {
 		//particle.alpha = ageRatio;
 		particle.position.x += particle.velocity.x * this.delta;
 		particle.position.y += particle.velocity.y * this.delta;
-		particle.r += this.deltaColor.r;
-		particle.g += this.deltaColor.g;
-		particle.b += this.deltaColor.b;
+		particle.color.r += this.deltaColor.r;
+		particle.color.g += this.deltaColor.g;
+		particle.color.b += this.deltaColor.b;
 		
 		//New Alpha calculation
 		particle.color.a += this.deltaAlpha;
