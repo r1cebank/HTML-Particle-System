@@ -9,11 +9,11 @@
  
 var debug = 0;
 var cfg = {
-	totalParticles: 100,
+	totalParticles: 1,
 	updateDelta: 0.05,
 	particleLife: 10,
-	particleSize: 10,
-	endSize: 10,
+	particleSize: 4,
+	endSize: 0,
 	maxX: 400,
 	maxY: 400,
 	minX: 0,
@@ -32,9 +32,9 @@ var cfg = {
 	},
 	startColorVar: 20,
 	endColorVar: 20,
-	velocity: 10,
+	velocity: 20,
 	velocityVar: 0,
-	sizeVal: 4,
+	sizeVal: 0,
 	configStr: "config:test"
 };
 
@@ -299,7 +299,7 @@ Emitter.prototype.addParticle = function () {
 	};
 
 	
-	this.particlePool[this.particleCount].set(200 , 200, this.particleLife, random(60, 120, false), (this.velocity + this.velocityVar * random11()), this.particleSize + this.sizeVal * random11(), startColor);
+	this.particlePool[this.particleCount].set(200 , 200, this.particleLife, random(70, 110, false), (this.velocity + this.velocityVar * random11()), this.particleSize + this.sizeVal * random11(), startColor);
 	
 	
 	this.particleCount++;
@@ -346,7 +346,12 @@ Emitter.prototype.updateParticle = function (particle, particleIndex) {
 		
 		//New Size calculation
 		var deltaSize = (this.endSize - particle.originalSize) / (particle.originalSize / this.delta);
-		particle.size += deltaSize;	
+		particle.size += deltaSize;
+		
+		if(particle.size < 1) {
+			this.returnParticleToPool(particleIndex);
+			return;
+		}
 		
 			
 		if((particle.position.x < this.minX) || (particle.position.x > this.maxX) ||
