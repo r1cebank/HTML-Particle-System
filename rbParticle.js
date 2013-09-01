@@ -9,11 +9,11 @@
  
 var debug = 0;
 var cfg = {
-	totalParticles: 200,
+	totalParticles: 20,
 	updateDelta: 0.05,
 	particleLife: 20,
-	emissionRate: 200,
-	particleSize: 4,
+	emissionRate: 1,
+	particleSize: 10,
 	minAngle: 50,
 	maxAngle: 130,
 	endSize: 0,
@@ -43,7 +43,11 @@ var cfg = {
 	velocityVar: 0,
 	sizeVal: 2,
 	useTexture: false,
-	texture : "texture.png",
+	texture: "texture.png",
+	textureSize: {
+		width: 32,
+		height: 32
+	},
 	configStr: "config:test"
 };
 
@@ -155,6 +159,37 @@ rbParticle.prototype.draw = function () {
 		this.renderer.draw();
 }
 
+////////////////Start Physics Engine//////////////
+
+function PhysicsE () {
+	
+}
+
+///////////////Vectors///////////////
+
+function Vector(x, y) {
+	this.x = x || 0;
+	this.y = y || 0;
+}
+Vector.prototype.add = function(vector) {
+	this.x += vector.x;
+	this.y += vector.y;
+};
+
+Vector.prototype.getMagnitude = function () {
+	return Math.sqrt(this.x * this.x + this.y * this.y);
+};
+
+Vector.prototype.getAngle = function() {
+	return Math.atan2(this.y,this.x);
+};
+
+Vector.fromAngle = function (angle, magnitude) {
+	return new Vector(magnitude * Math.cos(angle), magnitude * Math.sin(angle));
+};
+
+///////////////End Physics Engine/////////////////
+
 ////////////////Start Renderer//////////////
 function Renderer (stats, context, emitter) {
 	this.stats = stats;
@@ -223,10 +258,8 @@ function Particle(x, y, life, angle, speed, size, color) {
 	};
 	
 	var angleInRadians = angle * Math.PI / 180;
-	this.velocity = {
-		x: speed * Math.cos(angleInRadians),
-		y: -speed * Math.sin(angleInRadians)
-	};
+	this.velocity = new Vector(speed * Math.cos(angleInRadians),-speed * Math.sin(angleInRadians));
+	this.buffer = null;
 	this.originalLife = this.life = life;
 	this.color = color;
 	this.originalSize = this.size = size;
@@ -313,13 +346,14 @@ function Emitter(config) {
 	this.textureImg = new Image(); 
 	this.useTexture = config.useTexture;
 	this.texture = config.texture;
+	this.textureSize = config.textureSize;
 	if(this.useTexture) {
 		console.log(this.logCallsign + "loading texture.");
 		this.textureImg.src = this.texture;
 		if((this.textureImg.width == 0 ) || (this.textureImg.height == 0)) {
 			//this.useTexture = false;
-			this.textureImg.width = 32;
-			this.textureImg.height = 32;
+			this.textureImg.width = this.textureSize.width;
+			this.textureImg.height = this.textureSize.height;
 		}
 		console.log(this.logCallsign + "texture loaded");
 		console.log(this.logCallsign + "texture width: " + this.textureImg.width + " texture height: " + this.textureImg.height);
