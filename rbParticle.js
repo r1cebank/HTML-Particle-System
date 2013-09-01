@@ -9,14 +9,14 @@
  
 var debug = 0;
 var cfg = {
-	totalParticles: 20,
+	totalParticles: 200,
 	updateDelta: 0.05,
 	particleLife: 20,
-	emissionRate: 1,
+	emissionRate: 10,
 	particleSize: 10,
-	minAngle: 50,
-	maxAngle: 130,
-	endSize: 0,
+	minAngle: 70,
+	maxAngle: 110,
+	endSize: 8,
 	maxX: 400,
 	maxY: 400,
 	minX: 0,
@@ -39,8 +39,8 @@ var cfg = {
 	endAlpha: 0.4,
 	startColorVar: 20,
 	endColorVar: 20,
-	velocity: 20,
-	velocityVar: 0,
+	velocity: 30,
+	velocityVar: 10,
 	sizeVal: 2,
 	useTexture: false,
 	texture: "texture.png",
@@ -49,6 +49,15 @@ var cfg = {
 		height: 32
 	},
 	configStr: "config:test"
+};
+
+var phys = {
+	gravity: {
+		x: 0,
+		y: 0.3
+	},
+	radialAccel: 0,
+	tangentialAccel: 0
 };
 
  /* End Test */
@@ -161,8 +170,28 @@ rbParticle.prototype.draw = function () {
 
 ////////////////Start Physics Engine//////////////
 
-function PhysicsE () {
+function PhysicsE (config) {
+	this.logCallsign = "PhysicsE: ";
+	console.log(this.logCallsign + "initialize physics engine.");
+	console.log(JSON.stringify(config));
+	this.gravity = config.gravity;
+	this.radialAccel = config.radialAccel;
+	this.tangentialAccel = config.tangentialAccel;
 	
+	//Forces
+	this.forces = new Vector(0, 0);
+	
+}
+
+PhysicsE.prototype.updateParticle = function (particle, emitter) {
+	if(debug)
+		console.log(this.logCallsign + "updating particle.");
+	this.forces.x = 0;
+	this.forces.y = 0;
+	this.forces.x = this.gravity.x;
+	this.forces.y = this.gravity.y;
+	
+	particle.velocity.add(this.forces);
 }
 
 ///////////////Vectors///////////////
@@ -187,6 +216,14 @@ Vector.prototype.getAngle = function() {
 Vector.fromAngle = function (angle, magnitude) {
 	return new Vector(magnitude * Math.cos(angle), magnitude * Math.sin(angle));
 };
+
+Vector.normalize = function () {
+	var length = this.getMagnitude();
+
+	this.x /= length;
+	this.y /= length;
+}
+
 
 ///////////////End Physics Engine/////////////////
 
@@ -280,10 +317,8 @@ Particle.prototype.set = function (x, y, life, angle, speed, size, color) {
 	};
 	
 	var angleInRadians = angle * Math.PI / 180;
-	this.velocity = {
-		x: speed * Math.cos(angleInRadians),
-		y: -speed * Math.sin(angleInRadians)
-	};
+	this.velocity.x = speed * Math.cos(angleInRadians);
+	this.velocity.y = -speed * Math.sin(angleInRadians);
 	this.originalLife = this.life = life;
 	this.color = color;
 	this.originalSize = this.size = size;
@@ -304,7 +339,11 @@ Particle.prototype.set = function (x, y, life, angle, speed, size, color) {
 function Emitter(config) {
 
 	this.logCallsign = "Emitter: ";
-	console.log(this.logCallsign + "emitter started with config: " + JSON.stringify(config));
+	console.log(this.logCallsign + "emitter started with config: ");
+	console.log(JSON.stringify(config));
+	
+	this.phys = new PhysicsE (phys);
+	
 	//Apply configs
 	this.position = config.position;
 	this.totalParticles = config.totalParticles;
@@ -466,6 +505,10 @@ Emitter.prototype.updateParticle = function (particle, particleIndex) {
 	particle.life -= this.delta;
 			
 	if(particle.life > 0) {
+		
+		//Update particle from physics engine
+		this.phys.updateParticle(particle, this);
+		
 		if(debug) {
 			console.log(this.logCallsign + "updating particle: " + particleIndex);
 			console.log(this.logCallsign + JSON.stringify(particle));
