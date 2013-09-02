@@ -11,12 +11,12 @@ var debug = 0;
 var cfg = {
 	totalParticles: 200,
 	updateDelta: 0.05,
-	particleLife: 20,
-	emissionRate: 10,
-	particleSize: 10,
+	particleLife: 10,
+	emissionRate: 20,
+	particleSize: 6,
 	minAngle: 70,
 	maxAngle: 110,
-	endSize: 8,
+	endSize: 6,
 	maxX: 400,
 	maxY: 400,
 	minX: 0,
@@ -39,9 +39,9 @@ var cfg = {
 	endAlpha: 0.4,
 	startColorVar: 20,
 	endColorVar: 20,
-	velocity: 30,
-	velocityVar: 10,
-	sizeVal: 2,
+	velocity: 40,
+	velocityVar: 0,
+	sizeVal: 0,
 	useTexture: false,
 	texture: "texture.png",
 	textureSize: {
@@ -54,7 +54,7 @@ var cfg = {
 var phys = {
 	gravity: {
 		x: 0,
-		y: 0.3
+		y: 0
 	},
 	radialAccel: 0,
 	tangentialAccel: 0
@@ -186,12 +186,41 @@ function PhysicsE (config) {
 PhysicsE.prototype.updateParticle = function (particle, emitter) {
 	if(debug)
 		console.log(this.logCallsign + "updating particle.");
-	this.forces.x = 0;
-	this.forces.y = 0;
-	this.forces.x = this.gravity.x;
-	this.forces.y = this.gravity.y;
+	//Forces
+	particle.forces = particle.forces || new Vector(0, 0);
+	particle.radial = particle.radial || new Vector(0, 0);
+	//No radial force when particle is close to the emitter
+	if((particle.position != emitter.position.x || particle.position.y != emitter.position.y) && (this.radialAccel || this.tangentialAccel)) {
+		//Set radial
+		particle.radial.x = particle.position.x - emitter.position.x;
+		particle.radial.y = particle.position.y - emitter.position.y;
+		
+		particle.radial.normalize();
+
+	}
+	particle.tangential = particle.tangential || new Vector(0, 0);
+	//Set tangential vector
+	particle.tangential.x = particle.radial.x;
+	particle.tangential.x = particle.radial.x
+	//Set radial from acceleration
+	particle.radial.x *= this.radialAccel;
+	particle.radial.y *= this.radialAccel;
 	
-	particle.velocity.add(this.forces);
+	var tempX = particle.tangential.x;
+	particle.tangential.x = - particle.tangential.y;
+	particle.tangential.y = tempX;
+	
+	particle.tangential.x *= this.tangentialAccel;
+	particle.tangential.y *= this.tangentialAccel;
+	
+	
+	particle.forces.x = particle.radial.x + particle.tangential.x + this.gravity.x;
+	particle.forces.y = particle.radial.y + particle.tangential.y + this.gravity.y;
+	
+	particle.forces.x *= emitter.delta;
+	particle.forces.y *= emitter.delta;
+	
+	particle.velocity.add(particle.forces);
 }
 
 ///////////////Vectors///////////////
@@ -213,11 +242,11 @@ Vector.prototype.getAngle = function() {
 	return Math.atan2(this.y,this.x);
 };
 
-Vector.fromAngle = function (angle, magnitude) {
+Vector.prototype.fromAngle = function (angle, magnitude) {
 	return new Vector(magnitude * Math.cos(angle), magnitude * Math.sin(angle));
 };
 
-Vector.normalize = function () {
+Vector.prototype.normalize = function () {
 	var length = this.getMagnitude();
 
 	this.x /= length;
