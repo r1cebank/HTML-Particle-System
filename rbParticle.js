@@ -12,10 +12,10 @@ var cfg = {
 	totalParticles: 200,
 	updateDelta: 0.05,
 	particleLife: 10,
-	emissionRate: 20,
+	emissionRate: 10,
 	particleSize: 6,
-	minAngle: 70,
-	maxAngle: 110,
+	minAngle: 0,
+	maxAngle: 360,
 	endSize: 6,
 	maxX: 400,
 	maxY: 400,
@@ -39,7 +39,7 @@ var cfg = {
 	endAlpha: 0.4,
 	startColorVar: 20,
 	endColorVar: 20,
-	velocity: 40,
+	velocity: 10,
 	velocityVar: 0,
 	sizeVal: 0,
 	useTexture: false,
@@ -56,8 +56,8 @@ var phys = {
 		x: 0,
 		y: 0
 	},
-	radialAccel: 0,
-	tangentialAccel: 0
+	radialAccel: -40,
+	tangentialAccel: 40
 };
 
  /* End Test */
@@ -188,9 +188,13 @@ PhysicsE.prototype.updateParticle = function (particle, emitter) {
 		console.log(this.logCallsign + "updating particle.");
 	//Forces
 	particle.forces = particle.forces || new Vector(0, 0);
+	particle.forces.x = 0;
+	particle.forces.y = 0;
 	particle.radial = particle.radial || new Vector(0, 0);
+	particle.radial.x = 0;
+	particle.radial.y = 0;
 	//No radial force when particle is close to the emitter
-	if((particle.position != emitter.position.x || particle.position.y != emitter.position.y) && (this.radialAccel || this.tangentialAccel)) {
+	if((particle.position.x != emitter.position.x || particle.position.y != emitter.position.y) && (this.radialAccel || this.tangentialAccel)) {
 		//Set radial
 		particle.radial.x = particle.position.x - emitter.position.x;
 		particle.radial.y = particle.position.y - emitter.position.y;
@@ -201,7 +205,7 @@ PhysicsE.prototype.updateParticle = function (particle, emitter) {
 	particle.tangential = particle.tangential || new Vector(0, 0);
 	//Set tangential vector
 	particle.tangential.x = particle.radial.x;
-	particle.tangential.x = particle.radial.x
+	particle.tangential.y = particle.radial.y;
 	//Set radial from acceleration
 	particle.radial.x *= this.radialAccel;
 	particle.radial.y *= this.radialAccel;
