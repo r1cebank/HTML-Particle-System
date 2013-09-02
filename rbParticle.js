@@ -9,14 +9,14 @@
  
 var debug = 0;
 var cfg = {
-	totalParticles: 200,
+	totalParticles: 500,
 	updateDelta: 0.05,
 	particleLife: 10,
-	emissionRate: 10,
-	particleSize: 6,
-	minAngle: 0,
+	emissionRate: 50,
+	particleSize: 3,
+	minAngle: 3,
 	maxAngle: 360,
-	endSize: 6,
+	endSize: 3,
 	maxX: 400,
 	maxY: 400,
 	minX: 0,
@@ -39,7 +39,7 @@ var cfg = {
 	endAlpha: 0.4,
 	startColorVar: 20,
 	endColorVar: 20,
-	velocity: 10,
+	velocity: 5,
 	velocityVar: 0,
 	sizeVal: 0,
 	useTexture: false,
@@ -56,8 +56,8 @@ var phys = {
 		x: 0,
 		y: 0
 	},
-	radialAccel: -40,
-	tangentialAccel: 40
+	radialAccel: 2,
+	tangentialAccel: -2
 };
 
  /* End Test */
@@ -506,7 +506,7 @@ Emitter.prototype.addParticle = function () {
 	};
 
 	
-	this.particlePool[this.particleCount].set(eval(this.position.x) , eval(this.position.y), this.particleLife, random(this.minAngle, this.maxAngle, false), (this.velocity + this.velocityVar * random11()), this.particleSize + this.sizeVal * random11(), startColor);
+	this.particlePool[this.particleCount].set(this.position.x , this.position.y, this.particleLife, random(this.minAngle, this.maxAngle, false), (this.velocity + this.velocityVar * random11()), this.particleSize + this.sizeVal * random11(), startColor);
 	
 	
 	this.particleCount++;
