@@ -9,14 +9,14 @@
  
 var debug = 0;
 var cfg = {
-	totalParticles: 500,
+	totalParticles: 400,
 	updateDelta: 0.05,
-	particleLife: 10,
-	emissionRate: 50,
-	particleSize: 3,
-	minAngle: 3,
-	maxAngle: 360,
-	endSize: 3,
+	particleLife: 20,
+	emissionRate: 20,
+	particleSize: 10,
+	minAngle: 40,
+	maxAngle: -40,
+	endSize: 8,
 	maxX: 400,
 	maxY: 400,
 	minX: 0,
@@ -32,14 +32,14 @@ var cfg = {
 		b: 47
 	},
 	position: {
-		x: 200,
+		x: 50,
 		y: 200
 	},
 	startAlpha: 0.8,
 	endAlpha: 0.4,
 	startColorVar: 20,
 	endColorVar: 20,
-	velocity: 5,
+	velocity: 30,
 	velocityVar: 0,
 	sizeVal: 0,
 	useTexture: false,
@@ -56,8 +56,13 @@ var phys = {
 		x: 0,
 		y: 0
 	},
-	radialAccel: 2,
-	tangentialAccel: -2
+	radialAccel: 0,
+	tangentialAccel: 0,
+	fieldPos: {
+		x: 300,
+		y: 200
+	},
+	fieldMass: -20
 };
 
  /* End Test */
@@ -170,16 +175,23 @@ rbParticle.prototype.draw = function () {
 
 ////////////////Start Physics Engine//////////////
 
+function Field (position, mass) {
+	this.position = position;
+	this.mass = mass;
+}
+
 function PhysicsE (config) {
 	this.logCallsign = "PhysicsE: ";
 	console.log(this.logCallsign + "initialize physics engine.");
 	console.log(JSON.stringify(config));
-	this.gravity = config.gravity;
+	this.gravity = new Vector(config.gravity.x, config.gravity.y);
 	this.radialAccel = config.radialAccel;
 	this.tangentialAccel = config.tangentialAccel;
 	
 	//Forces
 	this.forces = new Vector(0, 0);
+	//Field Will add support for multiple fields later
+	this.field = new Field(config.fieldPos, config.fieldMass);
 	
 }
 
@@ -217,9 +229,16 @@ PhysicsE.prototype.updateParticle = function (particle, emitter) {
 	particle.tangential.x *= this.tangentialAccel;
 	particle.tangential.y *= this.tangentialAccel;
 	
+	//Fields calculation
+	var fieldVector = new Vector(this.field.position.x - particle.position.x, this.field.position.y - particle.position.y);
+	var fieldForce = this.field.mass / Math.pow(fieldVector.getMagnitude(), 1.5);
 	
-	particle.forces.x = particle.radial.x + particle.tangential.x + this.gravity.x;
-	particle.forces.y = particle.radial.y + particle.tangential.y + this.gravity.y;
+	fieldVector.multiply(fieldForce);
+	
+	particle.forces.add(particle.tangential);
+	particle.forces.add(particle.radial);
+	particle.forces.add(this.gravity);
+	particle.forces.add(fieldVector);
 	
 	particle.forces.x *= emitter.delta;
 	particle.forces.y *= emitter.delta;
@@ -237,6 +256,11 @@ Vector.prototype.add = function(vector) {
 	this.x += vector.x;
 	this.y += vector.y;
 };
+
+Vector.prototype.multiply = function (number) {
+	this.x *= number;
+	this.y *= number;
+}
 
 Vector.prototype.getMagnitude = function () {
 	return Math.sqrt(this.x * this.x + this.y * this.y);
@@ -505,7 +529,7 @@ Emitter.prototype.addParticle = function () {
 		a: this.startAlpha
 	};
 
-	
+	//TODO:: before run the update method. get position and velocity from config or function.
 	this.particlePool[this.particleCount].set(this.position.x , this.position.y, this.particleLife, random(this.minAngle, this.maxAngle, false), (this.velocity + this.velocityVar * random11()), this.particleSize + this.sizeVal * random11(), startColor);
 	
 	
