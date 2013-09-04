@@ -9,11 +9,11 @@
  
 var debug = 0;
 var cfg = {
-	totalParticles: 400,
+	totalParticles: 200,
 	updateDelta: 0.05,
 	particleLife: 20,
-	emissionRate: 20,
-	particleSize: 10,
+	emissionRate: 10,
+	particleSize: 6,
 	minAngle: 40,
 	maxAngle: -40,
 	endSize: 8,
@@ -39,7 +39,7 @@ var cfg = {
 	endAlpha: 0.4,
 	startColorVar: 20,
 	endColorVar: 20,
-	velocity: 30,
+	velocity: 20,
 	velocityVar: 0,
 	sizeVal: 0,
 	useTexture: false,
@@ -57,13 +57,24 @@ var phys = {
 		y: 0
 	},
 	radialAccel: 0,
-	tangentialAccel: 0,
+	tangentialAccel: 0
+};
+
+var field1 = {
 	fieldPos: {
-		x: 300,
+		x: 250,
 		y: 200
 	},
-	fieldMass: -20
-};
+	fieldMass: -10
+}
+
+var field2 = {
+	fieldPos: {
+		x: 200,
+		y: 100
+	},
+	fieldMass: -10
+}
 
  /* End Test */
  
@@ -191,7 +202,9 @@ function PhysicsE (config) {
 	//Forces
 	this.forces = new Vector(0, 0);
 	//Field Will add support for multiple fields later
-	this.field = new Field(config.fieldPos, config.fieldMass);
+	this.fields = [];
+	this.fields.push(new Field(field1.fieldPos, field1.fieldMass));
+	this.fields.push(new Field(field2.fieldPos, field2.fieldMass));
 	
 }
 
@@ -229,16 +242,19 @@ PhysicsE.prototype.updateParticle = function (particle, emitter) {
 	particle.tangential.x *= this.tangentialAccel;
 	particle.tangential.y *= this.tangentialAccel;
 	
-	//Fields calculation
-	var fieldVector = new Vector(this.field.position.x - particle.position.x, this.field.position.y - particle.position.y);
-	var fieldForce = this.field.mass / Math.pow(fieldVector.getMagnitude(), 1.5);
+	for(var i = 0; i < this.fields.length; i++ ) {
+		//Fields calculation
+		var fieldVector = new Vector(this.fields[i].position.x - particle.position.x, this.fields[i].position.y - particle.position.y);
+		var fieldForce = this.fields[i].mass / Math.pow(fieldVector.getMagnitude(), 1.5);
+		
+		fieldVector.multiply(fieldForce);
+		particle.forces.add(fieldVector);
+	}
 	
-	fieldVector.multiply(fieldForce);
 	
 	particle.forces.add(particle.tangential);
 	particle.forces.add(particle.radial);
 	particle.forces.add(this.gravity);
-	particle.forces.add(fieldVector);
 	
 	particle.forces.x *= emitter.delta;
 	particle.forces.y *= emitter.delta;
