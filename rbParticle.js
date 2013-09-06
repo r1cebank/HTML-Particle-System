@@ -9,13 +9,13 @@
  
 var debug = 0;
 var cfg = {
-	totalParticles: 200,
+	totalParticles: 1000,
 	updateDelta: 0.05,
 	particleLife: 20,
-	emissionRate: 10,
+	emissionRate: 50,
 	particleSize: 6,
-	minAngle: 40,
-	maxAngle: -40,
+	minAngle: 0,
+	maxAngle: 360,
 	endSize: 8,
 	maxX: 400,
 	maxY: 400,
@@ -32,8 +32,11 @@ var cfg = {
 		b: 47
 	},
 	position: {
-		x: 50,
+		x: 200,
 		y: 200
+	},
+	positionFn: function () {
+		return {x: Math.random() * 400, y: Math.random() * 400};
 	},
 	startAlpha: 0.8,
 	endAlpha: 0.4,
@@ -65,15 +68,15 @@ var field1 = {
 		x: 250,
 		y: 200
 	},
-	fieldMass: -10
+	fieldMass: -20
 }
 
-var field2 = {
+var field3 = {
 	fieldPos: {
-		x: 200,
-		y: 100
+		x: 150,
+		y: 200
 	},
-	fieldMass: -10
+	fieldMass: -20
 }
 
  /* End Test */
@@ -204,7 +207,7 @@ function PhysicsE (config) {
 	//Field Will add support for multiple fields later
 	this.fields = [];
 	this.fields.push(new Field(field1.fieldPos, field1.fieldMass));
-	this.fields.push(new Field(field2.fieldPos, field2.fieldMass));
+	this.fields.push(new Field(field3.fieldPos, field3.fieldMass));
 	
 }
 
